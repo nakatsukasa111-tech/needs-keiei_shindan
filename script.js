@@ -52,6 +52,44 @@
     businessDays: 26
   };
 
+  // 経営体質チェック（10問）
+  // 数値フォームの各項目が前提としている「仕組み」を、5軸それぞれ2問ずつで確認する
+  var QUESTIONS = [
+    { id: 'q1',  axis: 'profitability', text: '毎月の売上と経費（固定費・人件費・その他）を数字で把握し、月次で振り返っていますか？' },
+    { id: 'q2',  axis: 'profitability', text: '料金プランを、原価と目標利益から逆算して決めていますか？' },
+    { id: 'q3',  axis: 'attraction',    text: '新規問い合わせが「どの経路から来たか」を記録・集計していますか？' },
+    { id: 'q4',  axis: 'attraction',    text: '紹介や口コミが生まれる仕組み（紹介特典・レビュー依頼など）がありますか？' },
+    { id: 'q5',  axis: 'closing',       text: '体験時のヒアリングから提案までの流れが、スタッフ間で標準化されていますか？' },
+    { id: 'q6',  axis: 'closing',       text: '体験後に入会されなかった方へのフォロー（追客）を行っていますか？' },
+    { id: 'q7',  axis: 'retention',     text: '会員一人ひとりの目標と進捗を記録し、定期的に振り返る機会がありますか？' },
+    { id: 'q8',  axis: 'retention',     text: '退会理由をヒアリングし、記録・共有していますか？' },
+    { id: 'q9',  axis: 'efficiency',    text: '予約枠の稼働率（埋まり具合）を把握し、シフト設計に反映していますか？' },
+    { id: 'q10', axis: 'efficiency',    text: 'トレーナーの指導品質を揃えるための教育やマニュアルがありますか？' }
+  ];
+
+  // 設問の選択肢（値がそのまま得点になる）
+  var CHOICES = [
+    { value: 100, label: 'できている' },
+    { value: 67,  label: 'だいたい' },
+    { value: 33,  label: 'あまり' },
+    { value: 0,   label: 'できていない' }
+  ];
+
+  // サンプルデータ用の回答
+  var SAMPLE_ANSWERS = {
+    q1: 100, q2: 67, q3: 33, q4: 33, q5: 67,
+    q6: 33,  q7: 67, q8: 33, q9: 67, q10: 100
+  };
+
+  // 軸ごとの、体質スコアが低いときの打ち手
+  var QUALITY_ACTIONS = {
+    profitability: '月次の数字を1枚にまとめ、価格を原価から逆算し直す',
+    attraction:    '問い合わせ経路の記録と、紹介・口コミの導線づくり',
+    closing:       '体験の進め方の標準化と、未入会者へのフォロー',
+    retention:     '目標設定の面談と、退会理由の記録・共有',
+    efficiency:    '予約稼働率の可視化と、指導品質を揃える教育'
+  };
+
   // 判定しきい値（仮の基準）
   var THRESHOLDS = {
     profitRate: { good: 20, warn: 10 },   // 営業利益率(%)  20以上=良好 / 10以上=注意
@@ -264,6 +302,87 @@
     return { key: 'bad', label: '改善必要' };
   }
 
+  /* ---------- 4-2. 経営体質チェック（10問） ---------- */
+
+  /** 設問リストをフォームに描画する */
+  function renderQuestions() {
+    $('questionList').innerHTML = QUESTIONS.map(function (q, index) {
+      var choices = CHOICES.map(function (choice) {
+        return '<label>' +
+                 '<input type="radio" name="' + q.id + '" value="' + choice.value + '">' +
+                 '<span>' + choice.label + '</span>' +
+               '</label>';
+      }).join('');
+
+      return '' +
+        '<div class="question">' +
+          '<p class="question-text">' +
+            '<span class="question-no">Q' + (index + 1) + '</span>' + q.text +
+          '</p>' +
+          '<div class="choices">' + choices + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  /**
+   * 回答を5軸ごとに集計する。
+   * 未回答は集計から除外し、その軸の回答が0件なら null（判定不可）とする。
+   */
+  function collectQualityScores() {
+    var sums = {};
+    var counts = {};
+    var answered = 0;
+
+    QUESTIONS.forEach(function (q) {
+      var checked = document.querySelector('input[name="' + q.id + '"]:checked');
+      if (!checked) return;
+      var value = toNumber(checked.value);
+      if (value === null) return;
+
+      sums[q.axis] = (sums[q.axis] || 0) + value;
+      counts[q.axis] = (counts[q.axis] || 0) + 1;
+      answered++;
+    });
+
+    var scores = {};
+    SCORE_LABELS.forEach(function (item) {
+      scores[item.key] = counts[item.key]
+        ? clampScore(sums[item.key] / counts[item.key])
+        : null;
+    });
+
+    var values = SCORE_LABELS
+      .map(function (item) { return scores[item.key]; })
+      .filter(function (v) { return v !== null; });
+
+    return {
+      answered: answered,
+      scores: scores,
+      total: values.length
+        ? Math.round(values.reduce(function (a, b) { return a + b; }, 0) / values.length)
+        : null
+    };
+  }
+
+  /** スコアを10段階のテキストバーに変換する */
+  function textBar(score) {
+    if (score === null) return '░░░░░░░░░░';
+    var filled = Math.round(score / 10);
+    return new Array(filled + 1).join('█') + new Array(10 - filled + 1).join('░');
+  }
+
+  /** 数値スコアと体質スコアの組み合わせから読み取りコメントを返す */
+  function readGap(numeric, quality) {
+    if (quality === null) return '未回答';
+    if (numeric >= 70 && quality >= 70) return '数字・仕組みとも安定しています';
+    if (numeric >= 70 && quality < 50) return '今の数字は好調ですが、仕組みが追いついていません';
+    if (numeric < 50 && quality >= 70) return '仕組みはあります。数字に表れるまで運用を継続しましょう';
+    if (numeric < 50 && quality < 50) return '最優先で着手したい領域です';
+    if (numeric < 50) return '数字が伸び悩んでいます。運用の精度を上げましょう';
+    if (quality < 70) return '仕組みを整えると、数字の再現性が高まります';
+    return '平均的な状態です。あと一歩の改善余地があります';
+  }
+
   /* ---------- 5-1. KPIカードの描画 ---------- */
 
   var BADGE_CLASS = { good: 'badge-good', warn: 'badge-warn', bad: 'badge-bad', none: 'badge-none' };
@@ -432,7 +551,7 @@
       '　／　体験→入会：' + (joinRate === null ? '—' : formatPercent(joinRate * 100) + '%');
   }
 
-  function renderRadarChart(scores) {
+  function renderRadarChart(scores, quality) {
     var options = baseOptions();
     options.scales = {
       r: {
@@ -445,28 +564,47 @@
       }
     };
     options.plugins.tooltip.callbacks = {
-      label: function (ctx) { return ctx.parsed.r + ' 点'; }
+      label: function (ctx) { return ctx.dataset.label + '：' + ctx.parsed.r + ' 点'; }
     };
+
+    var datasets = [{
+      label: '数値診断',
+      data: [
+        scores.profitability,
+        scores.attraction,
+        scores.closing,
+        scores.retention,
+        scores.efficiency
+      ],
+      backgroundColor: 'rgba(31, 111, 208, 0.18)',
+      borderColor: COLOR.blue,
+      borderWidth: 2,
+      pointBackgroundColor: COLOR.blue,
+      pointRadius: 4
+    }];
+
+    // 10問に回答があれば「体質スコア」を重ねて、数字と仕組みのギャップを可視化する
+    if (quality && quality.answered > 0) {
+      datasets.push({
+        label: '経営体質（10問）',
+        data: SCORE_LABELS.map(function (item) { return quality.scores[item.key]; }),
+        backgroundColor: 'rgba(23, 166, 115, 0.14)',
+        borderColor: COLOR.green,
+        borderWidth: 2,
+        borderDash: [5, 4],
+        pointBackgroundColor: COLOR.green,
+        pointRadius: 4
+      });
+      options.plugins.legend = {
+        display: true,
+        position: 'bottom',
+        labels: { color: COLOR.text, boxWidth: 14, padding: 16, font: { size: 12 } }
+      };
+    }
 
     charts.radar = new Chart($('radarChart'), {
       type: 'radar',
-      data: {
-        labels: ['収益性', '集客力', '成約力', '継続力', '稼働効率'],
-        datasets: [{
-          data: [
-            scores.profitability,
-            scores.attraction,
-            scores.closing,
-            scores.retention,
-            scores.efficiency
-          ],
-          backgroundColor: 'rgba(31, 111, 208, 0.18)',
-          borderColor: COLOR.blue,
-          borderWidth: 2,
-          pointBackgroundColor: COLOR.blue,
-          pointRadius: 4
-        }]
-      },
+      data: { labels: ['収益性', '集客力', '成約力', '継続力', '稼働効率'], datasets: datasets },
       options: options
     });
   }
@@ -476,7 +614,7 @@
    * Chart.js が読み込めない環境やグラフ描画に失敗した場合でも、
    * 診断結果（KPI・総合診断・アドバイス）は表示され続けるようにする。
    */
-  function renderCharts(data, metrics, scores) {
+  function renderCharts(data, metrics, scores, quality) {
     var fallback = $('chartFallback');
     var grid = $('chartGrid');
 
@@ -491,7 +629,7 @@
       destroyCharts();
       renderCostChart(data, metrics);
       renderFunnelChart(data);
-      renderRadarChart(scores);
+      renderRadarChart(scores, quality);
       grid.hidden = false;
       fallback.hidden = true;
     } catch (error) {
@@ -531,6 +669,92 @@
     }).join('');
 
     return total;
+  }
+
+  /* ---------- 5-3-2. 経営体質チェックの分析描画 ---------- */
+
+  function renderQuality(scores, quality) {
+    var card = $('qualityCard');
+
+    // 1問も回答がなければカードごと非表示
+    if (!quality.answered) {
+      card.hidden = true;
+      return;
+    }
+    card.hidden = false;
+
+    $('qualityScore').textContent = quality.total === null ? '—' : quality.total;
+
+    // 表：軸ごとに「数値スコア」と「体質スコア」を並べて比較する
+    var head = '<div class="qt-row qt-head">' +
+      '<span>項目</span><span>数値診断</span><span>経営体質</span><span>読み取り</span></div>';
+
+    var rows = SCORE_LABELS.map(function (item) {
+      var numeric = scores[item.key];
+      var qual = quality.scores[item.key];
+      return '' +
+        '<div class="qt-row">' +
+          '<span class="qt-axis">' + item.label + '</span>' +
+          '<span class="qt-metric">' +
+            '<span class="qt-tag">数値</span>' +
+            '<span class="qt-bar">' + textBar(numeric) + '</span>' +
+            '<span class="qt-num">' + numeric + '</span>' +
+          '</span>' +
+          '<span class="qt-metric">' +
+            '<span class="qt-tag">体質</span>' +
+            '<span class="qt-bar qt-bar-quality' + (qual === null ? ' is-empty' : '') + '">' + textBar(qual) + '</span>' +
+            '<span class="qt-num">' + (qual === null ? '—' : qual) + '</span>' +
+          '</span>' +
+          '<span class="qt-read">' + readGap(numeric, qual) + '</span>' +
+        '</div>';
+    }).join('');
+
+    $('qualityTable').innerHTML = head + rows;
+    $('qualitySummary').textContent = buildQualitySummary(scores, quality);
+    $('qualityNote').textContent = buildQualityNote(scores, quality);
+  }
+
+  /** 体質スコアの総評（1〜2文） */
+  function buildQualitySummary(scores, quality) {
+    var text;
+    if (quality.total === null) text = '回答が不足しているため、体質は判定できませんでした。';
+    else if (quality.total >= 80) text = '仕組みは十分に整っています。';
+    else if (quality.total >= 60) text = '基本は押さえられていますが、仕組み化に伸びしろがあります。';
+    else text = '運営が個人の力量に依存しやすく、仕組みづくりはこれからの段階です。';
+
+    // 数値と体質の差が最も大きい軸を探し、そのギャップを一言で伝える
+    var widest = null;
+    SCORE_LABELS.forEach(function (item) {
+      var qual = quality.scores[item.key];
+      if (qual === null) return;
+      var gap = scores[item.key] - qual;
+      if (!widest || gap > widest.gap) widest = { label: item.label, gap: gap, numeric: scores[item.key], quality: qual };
+    });
+
+    if (widest && widest.gap >= 30) {
+      text += '特に「' + widest.label + '」は数値' + widest.numeric + '点に対して体質' + widest.quality +
+        '点で、今の成果が現場の頑張りに支えられている可能性があります。ここを仕組みに変えられると、成果が安定します。';
+    } else if (widest && widest.gap <= -30) {
+      text += 'なお「' + widest.label + '」は仕組みが先行しています。運用を続ければ数字がついてくる見込みです。';
+    }
+    return text;
+  }
+
+  /** 打ち手と回答状況の注記 */
+  function buildQualityNote(scores, quality) {
+    var lowest = null;
+    SCORE_LABELS.forEach(function (item) {
+      var qual = quality.scores[item.key];
+      if (qual === null) return;
+      if (!lowest || qual < lowest.score) lowest = { key: item.key, label: item.label, score: qual };
+    });
+
+    var note = '回答：' + quality.answered + '／' + QUESTIONS.length + '問';
+    if (quality.answered < QUESTIONS.length) note += '（未回答の設問は集計から除外しています）';
+    if (lowest && lowest.score < 70) {
+      note += '　最初の一歩：' + lowest.label + 'の「' + QUALITY_ACTIONS[lowest.key] + '」から着手すると効果が出やすい状態です。';
+    }
+    return note;
   }
 
   /* ---------- 5-4. 改善アドバイスの描画 ---------- */
@@ -615,13 +839,32 @@
       title: '集客力：流入経路をもう一段強化できます',
       text: '問い合わせ数は確保できていますが、会員数に対する母数にはまだ伸びしろがあります。紹介制度やGoogleマップの運用を強化しましょう。',
       test: function (m, s) { return s.attraction >= 50 && s.attraction < 70; }
+    },
+    {
+      priority: 11,
+      level: 'is-warn',
+      title: '仕組み化：成果が現場の頑張りに依存しています',
+      text: '数値は出ていますが、10問チェックでは仕組みの整備が追いついていません。担当者が変わっても同じ成果が出せるよう、記録と手順の標準化から着手しましょう。',
+      test: function (m, s, q) {
+        if (!q || !q.answered || q.total === null) return false;
+        // 数値は良好（総合70点以上相当）なのに体質が60点未満のとき
+        var numericAvg = SCORE_LABELS.reduce(function (sum, item) { return sum + s[item.key]; }, 0) / SCORE_LABELS.length;
+        return numericAvg >= 70 && q.total < 60;
+      }
+    },
+    {
+      priority: 12,
+      level: 'is-good',
+      title: '仕組み化：土台は整っています',
+      text: '10問チェックの結果、記録・標準化・フォローの仕組みは概ね機能しています。あとは数字の目標を決めて、どの指標を伸ばすかに集中しましょう。',
+      test: function (m, s, q) { return !!q && q.answered >= 8 && q.total !== null && q.total >= 80; }
     }
   ];
 
   /** 優先度の高い順に条件判定し、最大3件を返す */
-  function buildAdvice(data, m, scores) {
+  function buildAdvice(data, m, scores, quality) {
     var matched = ADVICE_RULES
-      .filter(function (rule) { return rule.test(m, scores); })
+      .filter(function (rule) { return rule.test(m, scores, quality); })
       .sort(function (a, b) { return a.priority - b.priority; })
       .slice(0, 3);
 
@@ -664,6 +907,7 @@
 
     var metrics = calculateMetrics(data);
     var scores = calculateScores(data, metrics);
+    var quality = collectQualityScores();
 
     // 店舗名の表示（HTMLとして解釈させないため textContent を使用）
     $('resultStoreName').textContent = data.storeName
@@ -671,9 +915,10 @@
       : '入力内容にもとづく診断結果';
 
     renderKpiCards(metrics);
-    renderCharts(data, metrics, scores);
+    renderCharts(data, metrics, scores, quality);
     renderTotal(scores);
-    renderAdvice(buildAdvice(data, metrics, scores));
+    renderQuality(scores, quality);
+    renderAdvice(buildAdvice(data, metrics, scores, quality));
 
     var section = $('resultSection');
     section.hidden = false;
@@ -693,6 +938,15 @@
         el.classList.remove('is-invalid');
       }
     });
+
+    // 10問チェックの回答も入れておく
+    Object.keys(SAMPLE_ANSWERS).forEach(function (name) {
+      var radio = document.querySelector(
+        'input[name="' + name + '"][value="' + SAMPLE_ANSWERS[name] + '"]'
+      );
+      if (radio) radio.checked = true;
+    });
+
     showErrors([]);
   }
 
@@ -705,10 +959,12 @@
     showErrors([]);
     destroyCharts();
     $('resultSection').hidden = true;
+    $('qualityCard').hidden = true;
   }
 
   function init() {
     $('year').textContent = new Date().getFullYear();
+    renderQuestions();
 
     $('diagnosisForm').addEventListener('submit', function (event) {
       event.preventDefault();
