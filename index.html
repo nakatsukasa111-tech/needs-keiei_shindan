@@ -187,8 +187,22 @@
   <section class="section section-result" id="resultSection" hidden>
     <div class="container">
 
+      <!-- 印刷（PDF）時のみ表示されるレポートヘッダー -->
+      <div class="print-header">
+        <p class="print-header-title">ジム経営簡易診断レポート</p>
+        <p class="print-header-meta">
+          <span id="printStore"></span>
+          <span id="printDate"></span>
+        </p>
+      </div>
+
       <h2 class="section-title" id="resultTitle">診断結果</h2>
       <p class="section-lead" id="resultStoreName"></p>
+
+      <div class="result-toolbar">
+        <button class="btn btn-outline" type="button" id="pdfBtn">診断結果をPDFで保存</button>
+        <p class="result-toolbar-note">印刷画面が開いたら、送信先で「PDFに保存」を選んでください。</p>
+      </div>
 
       <!-- KPIカード -->
       <div class="kpi-grid" id="kpiGrid"></div>

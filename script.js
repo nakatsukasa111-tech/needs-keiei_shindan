@@ -892,6 +892,54 @@
     }).join('');
   }
 
+  /* ---------- 5-4-2. PDF保存（ブラウザの印刷機能を利用） ---------- */
+
+  /** 印刷用ヘッダーに店舗名と診断日を入れる */
+  function updatePrintHeader(storeName) {
+    var now = new Date();
+    var date = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日';
+    $('printStore').textContent = storeName ? '店舗名：' + storeName : '';
+    $('printDate').textContent = '診断日：' + date;
+  }
+
+  /** PDFのファイル名候補になる document.title を組み立てる */
+  function buildPrintTitle(storeName) {
+    var now = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    var stamp = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate());
+    return ['ジム経営簡易診断', storeName || '診断結果', stamp].join('_');
+  }
+
+  /**
+   * 印刷（PDF保存）を実行する。
+   * 多くのブラウザは document.title をPDFのファイル名の初期値に使うため、
+   * 印刷の前後で一時的に差し替える。
+   */
+  function printResult() {
+    var original = document.title;
+    document.title = buildPrintTitle(($('storeName').value || '').trim());
+
+    var restore = function () {
+      document.title = original;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+
+    window.print();
+
+    // afterprint が発火しないブラウザ向けの保険
+    window.setTimeout(function () {
+      if (document.title !== original) restore();
+    }, 3000);
+  }
+
+  /** 印刷レイアウトへの切り替えでグラフが崩れないよう再描画する */
+  function resizeCharts() {
+    Object.keys(charts).forEach(function (key) {
+      if (charts[key]) charts[key].resize();
+    });
+  }
+
   /* ---------- 5-5. 診断の実行 ---------- */
 
   function runDiagnosis() {
@@ -913,6 +961,7 @@
     $('resultStoreName').textContent = data.storeName
       ? data.storeName + ' の診断結果'
       : '入力内容にもとづく診断結果';
+    updatePrintHeader(data.storeName);
 
     renderKpiCards(metrics);
     renderCharts(data, metrics, scores, quality);
@@ -983,9 +1032,15 @@
 
     $('resetBtn').addEventListener('click', clearForm);
 
+    $('pdfBtn').addEventListener('click', printResult);
+
     $('contactBtn').addEventListener('click', function () {
       window.alert('お問い合わせ導線をここに設置できます');
     });
+
+    // 印刷レイアウトとの行き来でグラフのサイズを合わせ直す
+    window.addEventListener('beforeprint', resizeCharts);
+    window.addEventListener('afterprint', resizeCharts);
 
     // 入力し直したらエラー表示を解除
     Object.keys(FIELDS).forEach(function (key) {

@@ -607,6 +607,18 @@ button { font-family: inherit; }
 
 .quality-note { margin-top: 14px; font-size: 12px; color: var(--text-muted); }
 
+/* 印刷（PDF）用ヘッダーと保存ボタン */
+.print-header { display: none; }
+
+.result-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 22px;
+}
+.result-toolbar-note { font-size: 12px; color: var(--text-muted); }
+
 /* アドバイス */
 .advice-card { margin-top: 24px; }
 .advice-list { display: grid; gap: 14px; }
@@ -666,7 +678,7 @@ button { font-family: inherit; }
 .site-footer p { font-size: 12px; color: var(--text-muted); text-align: center; }
 
 /* ---------- 8. レスポンシブ ---------- */
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chart-grid { grid-template-columns: 1fr; }
@@ -674,14 +686,14 @@ button { font-family: inherit; }
   .total-inner { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 760px) {
+@media screen and (max-width: 760px) {
   .question { grid-template-columns: 1fr; }
   .quality-head { grid-template-columns: 1fr; }
   .qt-row { grid-template-columns: 1fr; gap: 6px; padding: 14px 16px; }
   .qt-row.qt-head { display: none; }
 }
 
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .section { padding: 48px 0; }
   .card { padding: 20px 16px; }
   .section-title { font-size: 21px; }
@@ -712,4 +724,139 @@ button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+}
+
+/* ---------- 9. 印刷（PDF保存）用レイアウト ---------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
+  }
+
+  /* 背景色・グラフの色を印刷に反映させる */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body { background: #fff; }
+  body { font-size: 11px; line-height: 1.6; }
+
+  /* 診断結果以外は印刷しない */
+  .site-header,
+  .hero,
+  #form-section,
+  .cta-section,
+  .site-footer,
+  .result-toolbar { display: none !important; }
+
+  .section-result {
+    padding: 0;
+    background: #fff;
+    border-top: none;
+  }
+  .container { max-width: none; padding: 0; }
+
+  /* レポートの見出し */
+  .print-header {
+    display: block;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid var(--navy);
+  }
+  .print-header-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: .04em;
+  }
+  .print-header-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .section-title { font-size: 15px; text-align: left; }
+  .section-title::after { margin: 8px 0 0; }
+  .section-lead { text-align: left; margin-top: 8px; }
+
+  /* カードは枠内で分割されないようにする */
+  .card,
+  .kpi-card,
+  .advice-item,
+  .qt-row {
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .card { padding: 12px 14px; margin-top: 10px; }
+  .card-title { padding-bottom: 8px; margin-bottom: 12px; font-size: 14px; }
+
+  .kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .kpi-card { padding: 12px 10px; }
+  .kpi-value { font-size: 20px; }
+  .kpi-formula { font-size: 9px; }
+
+  /* グラフは2列。レーダーのみ全幅で見やすく */
+  .chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .chart-card-wide { grid-column: 1 / -1; }
+  .chart-card { break-inside: avoid; page-break-inside: avoid; }
+
+  /*
+   * 印刷時はカード幅が変わるため、canvas を枠内に収まるよう明示的に縮める。
+   * Chart.js の再描画が印刷レイアウトに間に合わなくても、
+   * object-fit で描画済みの内容が枠からはみ出さないようにしている。
+   */
+  .chart-box { height: 180px; }
+  .chart-box-radar { height: 240px; max-width: 360px; }
+  .chart-box canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .total-inner { grid-template-columns: 140px 1fr; gap: 16px; }
+  .total-score { padding: 10px 8px; }
+  .total-score-value { font-size: 30px; }
+  .total-verdict-text { font-size: 15px; }
+  .score-bar { margin-top: 10px; }
+  .score-breakdown { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 10px; }
+  .score-breakdown li { padding: 6px 4px; }
+
+  .quality-head { grid-template-columns: 130px 1fr; margin-bottom: 12px; }
+  .quality-score { padding: 10px 8px; }
+  .quality-score-value { font-size: 24px; }
+  .qt-row {
+    display: grid;
+    grid-template-columns: 60px 155px 155px 1fr;
+    gap: 10px;
+    padding: 6px 10px;
+  }
+  .qt-row.qt-head { display: grid; }
+  .quality-note { margin-top: 10px; }
+
+  .advice-list { gap: 8px; }
+  .advice-item { padding: 10px 12px; gap: 10px; }
+  .advice-no { width: 20px; height: 20px; font-size: 11px; margin-top: 1px; }
+  .advice-body-title { font-size: 13px; }
+  .advice-body-text { font-size: 11px; margin-top: 2px; }
+
+  /* 総合診断から下は改ページして2ページ目に送る */
+  .total-card { break-before: page; page-break-before: always; }
+
+  a { text-decoration: none; color: inherit; }
 }
