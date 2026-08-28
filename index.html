@@ -175,7 +175,7 @@
           <div class="form-error" id="formError" role="alert" aria-live="assertive" hidden></div>
 
           <div class="submit-area">
-            <button class="btn btn-primary btn-xl" type="submit" id="submitBtn">診断結果を見る</button>
+            <button class="btn btn-primary btn-xl" type="button" id="submitBtn">診断結果を見る</button>
             <p class="submit-note">※入力したデータは保存されません（ブラウザ内でのみ計算されます）</p>
           </div>
         </form>
@@ -202,6 +202,7 @@
       <div class="result-toolbar">
         <button class="btn btn-outline" type="button" id="pdfBtn">診断結果をPDFで保存</button>
         <p class="result-toolbar-note">印刷画面が開いたら、送信先で「PDFに保存」を選んでください。</p>
+        <p class="print-help" id="printHelp" role="alert" hidden></p>
       </div>
 
       <!-- KPIカード -->

@@ -910,14 +910,99 @@
     return ['ジム経営簡易診断', storeName || '診断結果', stamp].join('_');
   }
 
+  /** このページが iframe（埋め込みプレビューなど）の中にあるか */
+  function isFramed() {
+    try {
+      return window.self !== window.top;
+    } catch (error) {
+      // クロスオリジンで参照できない場合も、埋め込まれているとみなす
+      return true;
+    }
+  }
+
+  /** 印刷できないときの案内を表示する */
+  function showPrintHelp(message) {
+    var help = $('printHelp');
+    help.textContent = message;
+    help.hidden = false;
+  }
+
+  /**
+   * 診断結果だけを持つ別ウィンドウを開いて印刷する。
+   * 埋め込み表示（iframe）では window.print() が無視されるため、
+   * 独立したウィンドウを作ってそちらから印刷する。
+   * ポップアップがブロックされた場合は false を返す。
+   */
+  function openPrintWindow(title) {
+    var win = window.open('', '_blank');
+    if (!win) return false;
+
+    // 現在のページのスタイルをそのまま引き継ぐ
+    var styles = '';
+    var styleNodes = document.querySelectorAll('style, link[rel="stylesheet"]');
+    for (var i = 0; i < styleNodes.length; i++) styles += styleNodes[i].outerHTML;
+
+    var source = $('resultSection');
+    var clone = source.cloneNode(true);
+    clone.removeAttribute('hidden');
+
+    // canvas は複製しても中身が空になるため、描画済みの内容を画像に置き換える
+    var originalCanvases = source.querySelectorAll('canvas');
+    var clonedCanvases = clone.querySelectorAll('canvas');
+    for (var j = 0; j < clonedCanvases.length; j++) {
+      var img = document.createElement('img');
+      img.src = originalCanvases[j].toDataURL('image/png');
+      img.setAttribute('style', 'width:100%;height:100%;object-fit:contain;');
+      clonedCanvases[j].parentNode.replaceChild(img, clonedCanvases[j]);
+    }
+
+    // 印刷用ウィンドウでは操作ボタンは不要
+    var toolbar = clone.querySelector('.result-toolbar');
+    if (toolbar) toolbar.parentNode.removeChild(toolbar);
+
+    win.document.write(
+      '<!doctype html><html lang="ja"><head><meta charset="utf-8">' +
+      '<title>' + title + '</title>' + styles +
+      '</head><body>' + clone.outerHTML + '</body></html>'
+    );
+    win.document.close();
+
+    // スタイルと画像の読み込みを待ってから印刷する
+    win.setTimeout(function () {
+      win.focus();
+      win.print();
+    }, 600);
+
+    return true;
+  }
+
   /**
    * 印刷（PDF保存）を実行する。
    * 多くのブラウザは document.title をPDFのファイル名の初期値に使うため、
    * 印刷の前後で一時的に差し替える。
    */
   function printResult() {
+    var title = buildPrintTitle(($('storeName').value || '').trim());
+    $('printHelp').hidden = true;
+
+    // 埋め込み表示では window.print() が無視されるので、別ウィンドウから印刷する
+    if (isFramed()) {
+      if (!openPrintWindow(title)) {
+        showPrintHelp(
+          'この画面は他のページに埋め込まれているため、印刷ダイアログを開けませんでした。' +
+          'ブラウザのポップアップを許可するか、公開ページを新しいタブで直接開いてからお試しください。'
+        );
+      }
+      return;
+    }
+
+    if (typeof window.print !== 'function') {
+      showPrintHelp('このブラウザでは印刷機能を利用できません。別のブラウザでお試しください。');
+      return;
+    }
+
     var original = document.title;
-    document.title = buildPrintTitle(($('storeName').value || '').trim());
+    document.title = title;
 
     var restore = function () {
       document.title = original;
@@ -1009,12 +1094,18 @@
     destroyCharts();
     $('resultSection').hidden = true;
     $('qualityCard').hidden = true;
+    $('printHelp').hidden = true;
   }
 
   function init() {
     $('year').textContent = new Date().getFullYear();
     renderQuestions();
 
+    // ボタンはクリックで直接実行する。
+    // （埋め込み表示などフォーム送信が許可されない環境でも動くようにするため）
+    $('submitBtn').addEventListener('click', runDiagnosis);
+
+    // 入力欄でEnterを押したときも診断できるようにする
     $('diagnosisForm').addEventListener('submit', function (event) {
       event.preventDefault();
       runDiagnosis();
