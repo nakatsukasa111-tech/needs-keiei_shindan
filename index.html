@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3分でわかる ジム経営簡易診断</title>
-  <meta name="description" content="パーソナルジム・小規模フィットネスジムの経営者向け。経営数値を入力するだけで収益性・集客力・継続力を簡易診断します。" />
+  <title>3分でわかる ジム経営ギャップ診断</title>
+  <meta name="description" content="パーソナルジム・小規模フィットネスジムの経営者向け。数字がわからなくても、20の質問に答えるだけで理想と現状のギャップが見えます。" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,183 +13,197 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo">GYM<span>DIAGNOSIS</span></div>
-      <span class="header-note">簡易経営診断ツール（デモ版）</span>
+      <span class="header-note">経営ギャップ診断（デモ版）</span>
     </div>
   </header>
 
-  <!-- ========== 1. ファーストビュー ========== -->
+  <!-- ========== ファーストビュー ========== -->
   <section class="hero">
     <div class="container hero-inner">
       <p class="hero-eyebrow">パーソナルジム／小規模フィットネスジム経営者向け</p>
-      <h1 class="hero-title">3分でわかる<br class="sp-only" /> ジム経営簡易診断</h1>
-      <p class="hero-subtitle">あなたの経営数値を入力するだけで、収益性・集客力・継続力を簡単チェック</p>
-      <p class="hero-description">現在の経営状態を数字から整理し、改善すべきポイントを見える化します。</p>
+      <h1 class="hero-title">3分でわかる<br class="sp-only" /> ジム経営ギャップ診断</h1>
+      <p class="hero-subtitle">数字がわからなくても大丈夫。20の質問に答えるだけで、理想と現状の差が見えます。</p>
+      <p class="hero-description">目指したい姿に対して、いま何が足りないのか。<br class="sp-only" />数字の把握状況と現場の仕組み、両面から現在地を可視化します。</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="#form-section">無料で診断する</a>
-        <button class="btn btn-ghost btn-lg" type="button" id="heroSampleBtn">サンプルデータを入力</button>
+        <a class="btn btn-primary btn-lg" href="#step1">無料で診断する</a>
+        <button class="btn btn-ghost btn-lg" type="button" id="heroSampleBtn">サンプル回答を入れる</button>
       </div>
       <p class="hero-note">※入力したデータは保存されません</p>
     </div>
   </section>
 
-  <!-- ========== 2. 診断入力フォーム ========== -->
-  <section class="section" id="form-section">
-    <div class="container">
-      <h2 class="section-title">経営数値を入力してください</h2>
-      <p class="section-lead">わかる範囲で構いません。すべてブラウザ内で計算され、外部には送信されません。</p>
+  <form id="diagnosisForm" novalidate>
 
-      <div class="card form-card">
-        <div class="form-toolbar">
-          <button class="btn btn-outline" type="button" id="sampleBtn">サンプルデータを入力</button>
-          <button class="btn btn-text" type="button" id="resetBtn">入力をクリア</button>
+    <!-- ========== STEP 1：目指す姿と現在の規模 ========== -->
+    <section class="section" id="step1">
+      <div class="container">
+        <p class="step-label">STEP 1</p>
+        <h2 class="section-title">目指す姿を決めてください</h2>
+        <p class="section-lead">ここが診断の基準になります。おおよそで構いません。</p>
+
+        <div class="card">
+          <div class="form-toolbar">
+            <button class="btn btn-outline" type="button" id="sampleBtn">サンプル回答を入れる</button>
+            <button class="btn btn-text" type="button" id="resetBtn">回答をクリア</button>
+          </div>
+
+          <div class="field field-wide">
+            <label for="storeName">店舗名（任意）</label>
+            <div class="input-wrap">
+              <input type="text" id="storeName" name="storeName" placeholder="例：Private Gym Sample" autocomplete="organization" />
+            </div>
+          </div>
+
+          <div class="scale-list" id="scaleQuestions"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STEP 2：20問の診断 ========== -->
+    <section class="section section-alt" id="step2">
+      <div class="container">
+        <p class="step-label">STEP 2</p>
+        <h2 class="section-title">20の質問に答えてください</h2>
+        <p class="section-lead">「数字を知っているか」ではなく、「経営判断に使えているか」でお答えください。</p>
+
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar-fill" id="progressFill"></div>
+          <span class="progress-text" id="progressText">0 / 20問</span>
         </div>
 
-        <form id="diagnosisForm" novalidate>
-
-          <!-- 基本情報 -->
-          <fieldset class="field-group">
-            <legend class="field-group-title">基本情報</legend>
-            <div class="grid">
-              <div class="field field-wide">
-                <label for="storeName">店舗名</label>
-                <div class="input-wrap">
-                  <input type="text" id="storeName" name="storeName" placeholder="例：Private Gym Sample" autocomplete="organization" />
-                </div>
-              </div>
-              <div class="field">
-                <label for="revenue">月商 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="revenue" name="revenue" min="0" step="1" inputmode="numeric" placeholder="3200000" />
-                  <span class="unit">円</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="fixedCost">月間固定費 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="fixedCost" name="fixedCost" min="0" step="1" inputmode="numeric" placeholder="800000" />
-                  <span class="unit">円</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="laborCost">月間人件費 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="laborCost" name="laborCost" min="0" step="1" inputmode="numeric" placeholder="1400000" />
-                  <span class="unit">円</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="otherCost">その他経費</label>
-                <div class="input-wrap">
-                  <input type="number" id="otherCost" name="otherCost" min="0" step="1" inputmode="numeric" placeholder="300000" />
-                  <span class="unit">円</span>
-                </div>
-              </div>
-            </div>
-          </fieldset>
-
-          <!-- 顧客関連 -->
-          <fieldset class="field-group">
-            <legend class="field-group-title">顧客関連</legend>
-            <div class="grid">
-              <div class="field">
-                <label for="members">現在の会員数 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="members" name="members" min="0" step="1" inputmode="numeric" placeholder="120" />
-                  <span class="unit">人</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="unitPrice">平均客単価</label>
-                <div class="input-wrap">
-                  <input type="number" id="unitPrice" name="unitPrice" min="0" step="1" inputmode="numeric" placeholder="22000" />
-                  <span class="unit">円</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="inquiries">月間新規問い合わせ数</label>
-                <div class="input-wrap">
-                  <input type="number" id="inquiries" name="inquiries" min="0" step="1" inputmode="numeric" placeholder="15" />
-                  <span class="unit">件</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="trials">月間体験数 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="trials" name="trials" min="0" step="1" inputmode="numeric" placeholder="12" />
-                  <span class="unit">件</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="joins">月間入会数 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="joins" name="joins" min="0" step="1" inputmode="numeric" placeholder="8" />
-                  <span class="unit">人</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="withdrawals">月間退会数 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="withdrawals" name="withdrawals" min="0" step="1" inputmode="numeric" placeholder="4" />
-                  <span class="unit">人</span>
-                </div>
-              </div>
-            </div>
-          </fieldset>
-
-          <!-- 稼働関連 -->
-          <fieldset class="field-group">
-            <legend class="field-group-title">稼働関連</legend>
-            <div class="grid">
-              <div class="field">
-                <label for="trainers">トレーナー人数 <span class="req">必須</span></label>
-                <div class="input-wrap">
-                  <input type="number" id="trainers" name="trainers" min="0" step="1" inputmode="numeric" placeholder="4" />
-                  <span class="unit">人</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="sessions">月間総セッション数</label>
-                <div class="input-wrap">
-                  <input type="number" id="sessions" name="sessions" min="0" step="1" inputmode="numeric" placeholder="450" />
-                  <span class="unit">回</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="businessDays">営業日数</label>
-                <div class="input-wrap">
-                  <input type="number" id="businessDays" name="businessDays" min="0" max="31" step="1" inputmode="numeric" placeholder="26" />
-                  <span class="unit">日</span>
-                </div>
-              </div>
-            </div>
-          </fieldset>
-
-          <!-- 経営体質チェック（10問） -->
-          <fieldset class="field-group">
-            <legend class="field-group-title">経営体質チェック（10問・任意）</legend>
-            <p class="field-group-note">数字には表れない「仕組み」の状態を確認します。近いものを選んでください。未回答でも診断できます。</p>
-            <div class="question-list" id="questionList"></div>
-          </fieldset>
-
-          <!-- エラーメッセージ -->
-          <div class="form-error" id="formError" role="alert" aria-live="assertive" hidden></div>
-
-          <div class="submit-area">
-            <button class="btn btn-primary btn-xl" type="button" id="submitBtn">診断結果を見る</button>
-            <p class="submit-note">※入力したデータは保存されません（ブラウザ内でのみ計算されます）</p>
-          </div>
-        </form>
+        <div id="questionGroups"></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ========== 3〜6. 診断結果エリア ========== -->
+    <!-- ========== STEP 3：詳しい数値（任意） ========== -->
+    <section class="section" id="step3">
+      <div class="container">
+        <p class="step-label">STEP 3（任意）</p>
+        <h2 class="section-title">数字がわかる方は、こちらもどうぞ</h2>
+        <p class="section-lead">未入力でも診断できます。入力すると、実数にもとづくKPIとグラフが追加されます。</p>
+
+        <details class="detail-block" id="detailBlock">
+          <summary class="detail-summary">
+            <span class="detail-summary-title">詳しい経営数値を入力する</span>
+            <span class="detail-summary-note">わかる項目だけで構いません</span>
+          </summary>
+
+          <div class="detail-body">
+            <fieldset class="field-group">
+              <legend class="field-group-title">収支</legend>
+              <div class="grid">
+                <div class="field">
+                  <label for="revenue">月商</label>
+                  <div class="input-wrap">
+                    <input type="number" id="revenue" min="0" step="1" inputmode="numeric" placeholder="3200000" />
+                    <span class="unit">円</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="fixedCost">月間固定費</label>
+                  <div class="input-wrap">
+                    <input type="number" id="fixedCost" min="0" step="1" inputmode="numeric" placeholder="800000" />
+                    <span class="unit">円</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="laborCost">月間人件費</label>
+                  <div class="input-wrap">
+                    <input type="number" id="laborCost" min="0" step="1" inputmode="numeric" placeholder="1400000" />
+                    <span class="unit">円</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="otherCost">その他経費</label>
+                  <div class="input-wrap">
+                    <input type="number" id="otherCost" min="0" step="1" inputmode="numeric" placeholder="300000" />
+                    <span class="unit">円</span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="field-group">
+              <legend class="field-group-title">集客と継続</legend>
+              <div class="grid">
+                <div class="field">
+                  <label for="inquiries">月間新規問い合わせ数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="inquiries" min="0" step="1" inputmode="numeric" placeholder="15" />
+                    <span class="unit">件</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="trials">月間体験数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="trials" min="0" step="1" inputmode="numeric" placeholder="12" />
+                    <span class="unit">件</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="joins">月間入会数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="joins" min="0" step="1" inputmode="numeric" placeholder="8" />
+                    <span class="unit">人</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="withdrawals">月間退会数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="withdrawals" min="0" step="1" inputmode="numeric" placeholder="4" />
+                    <span class="unit">人</span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="field-group">
+              <legend class="field-group-title">稼働</legend>
+              <div class="grid">
+                <div class="field">
+                  <label for="trainers">トレーナー人数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="trainers" min="0" step="1" inputmode="numeric" placeholder="4" />
+                    <span class="unit">人</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="sessions">月間総セッション数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="sessions" min="0" step="1" inputmode="numeric" placeholder="450" />
+                    <span class="unit">回</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="businessDays">営業日数</label>
+                  <div class="input-wrap">
+                    <input type="number" id="businessDays" min="0" max="31" step="1" inputmode="numeric" placeholder="26" />
+                    <span class="unit">日</span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </details>
+
+        <div class="form-error" id="formError" role="alert" aria-live="assertive" hidden></div>
+
+        <div class="submit-area">
+          <button class="btn btn-primary btn-xl" type="button" id="submitBtn">診断結果を見る</button>
+          <p class="submit-note">※入力したデータは保存されません（ブラウザ内でのみ計算されます）</p>
+        </div>
+      </div>
+    </section>
+
+  </form>
+
+  <!-- ========== 診断結果 ========== -->
   <section class="section section-result" id="resultSection" hidden>
     <div class="container">
 
       <!-- 印刷（PDF）時のみ表示されるレポートヘッダー -->
       <div class="print-header">
-        <p class="print-header-title">ジム経営簡易診断レポート</p>
+        <p class="print-header-title">ジム経営ギャップ診断レポート</p>
         <p class="print-header-meta">
           <span id="printStore"></span>
           <span id="printDate"></span>
@@ -205,75 +219,100 @@
         <p class="print-help" id="printHelp" role="alert" hidden></p>
       </div>
 
-      <!-- KPIカード -->
-      <div class="kpi-grid" id="kpiGrid"></div>
+      <!-- ギャップサマリー -->
+      <div class="gap-hero" id="gapHero">
+        <p class="gap-hero-label" id="gapHeroLabel">理想との差</p>
+        <p class="gap-hero-value"><span id="gapAmount">-</span></p>
+        <p class="gap-hero-sub" id="gapHeroSub"></p>
+        <div class="gap-compare">
+          <div class="gap-compare-item">
+            <span class="gap-compare-label">いまの月商（概算）</span>
+            <span class="gap-compare-value" id="currentRevenue">-</span>
+          </div>
+          <div class="gap-compare-arrow" aria-hidden="true">→</div>
+          <div class="gap-compare-item is-goal">
+            <span class="gap-compare-label">目指す月商</span>
+            <span class="gap-compare-value" id="goalRevenueText">-</span>
+          </div>
+        </div>
+        <p class="gap-hero-note" id="gapHeroNote"></p>
+      </div>
+
+      <!-- 到達度 -->
+      <div class="card ready-card">
+        <h3 class="card-title">その理想に、いまの経営体制は追いついていますか</h3>
+        <div class="ready-inner">
+          <div class="ready-score">
+            <span class="ready-score-label">理想への準備度</span>
+            <span class="ready-score-value" id="readyScore">-</span>
+            <span class="ready-score-unit">%</span>
+          </div>
+          <div class="ready-body">
+            <p class="ready-verdict" id="readyVerdict">-</p>
+            <div class="score-bar"><div class="score-bar-fill" id="readyBarFill"></div></div>
+            <p class="ready-text" id="readyText"></p>
+          </div>
+        </div>
+        <div class="number-grasp" id="numberGrasp"></div>
+      </div>
 
       <!-- グラフ -->
       <p class="chart-fallback" id="chartFallback" role="status" hidden></p>
       <div class="chart-grid" id="chartGrid">
         <div class="card chart-card">
-          <h3 class="card-title">売上とコスト構造</h3>
-          <div class="chart-box"><canvas id="costChart"></canvas></div>
+          <h3 class="card-title">いまの月商と目指す月商</h3>
+          <div class="chart-box"><canvas id="revenueChart"></canvas></div>
         </div>
         <div class="card chart-card">
-          <h3 class="card-title">集客ファネル</h3>
-          <div class="chart-box"><canvas id="funnelChart"></canvas></div>
-          <p class="chart-note" id="funnelNote"></p>
+          <h3 class="card-title">埋めるべき差（不足ポイント）</h3>
+          <div class="chart-box"><canvas id="gapChart"></canvas></div>
         </div>
         <div class="card chart-card chart-card-wide">
-          <h3 class="card-title">経営バランス</h3>
+          <h3 class="card-title">経営バランス（現状 と 理想に必要な水準）</h3>
           <div class="chart-box chart-box-radar"><canvas id="radarChart"></canvas></div>
         </div>
       </div>
 
-      <!-- 総合診断 -->
-      <div class="card total-card">
-        <h3 class="card-title">総合診断</h3>
-        <div class="total-inner">
-          <div class="total-score">
-            <span class="total-score-label">総合スコア</span>
-            <span class="total-score-value" id="totalScore">-</span>
-            <span class="total-score-unit">点</span>
-          </div>
-          <div class="total-verdict">
-            <p class="total-verdict-label">現在の経営状態</p>
-            <p class="total-verdict-text" id="totalVerdict">-</p>
-            <div class="score-bar"><div class="score-bar-fill" id="scoreBarFill"></div></div>
-            <ul class="score-breakdown" id="scoreBreakdown"></ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- 経営体質チェック（10問）の分析 -->
-      <div class="card quality-card" id="qualityCard" hidden>
-        <h3 class="card-title">経営体質チェック（10問）</h3>
-        <div class="quality-head">
-          <div class="quality-score">
-            <span class="quality-score-label">体質スコア</span>
-            <span class="quality-score-value" id="qualityScore">-</span>
-            <span class="quality-score-unit">点</span>
-          </div>
-          <p class="quality-summary" id="qualitySummary"></p>
-        </div>
+      <!-- 領域別の内訳 -->
+      <div class="card quality-card">
+        <h3 class="card-title">領域別の現在地</h3>
         <div class="quality-table" id="qualityTable"></div>
         <p class="quality-note" id="qualityNote"></p>
       </div>
 
-      <!-- 改善アドバイス -->
+      <!-- 優先課題 -->
       <div class="card advice-card">
-        <h3 class="card-title">優先して見直したいポイント</h3>
+        <h3 class="card-title">この差を埋めるために、優先すべき3つ</h3>
         <ol class="advice-list" id="adviceList"></ol>
+      </div>
+
+      <!-- 詳細数値の結果（任意入力があるときのみ） -->
+      <div class="card detail-result" id="detailResult" hidden>
+        <h3 class="card-title">入力された数値からのKPI</h3>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="chart-grid chart-grid-detail" id="detailChartGrid">
+          <div class="card chart-card">
+            <h4 class="card-subtitle">売上とコスト構造</h4>
+            <div class="chart-box"><canvas id="costChart"></canvas></div>
+          </div>
+          <div class="card chart-card">
+            <h4 class="card-subtitle">集客ファネル</h4>
+            <div class="chart-box"><canvas id="funnelChart"></canvas></div>
+            <p class="chart-note" id="funnelNote"></p>
+          </div>
+        </div>
       </div>
 
     </div>
   </section>
 
-  <!-- ========== 7. 最後のCTA ========== -->
+  <!-- ========== 最後のCTA ========== -->
   <section class="cta-section">
     <div class="container cta-inner">
-      <h2 class="cta-title">数字を整理すると、次にやることが見えてきます</h2>
-      <p class="cta-text">この診断は簡易版です。実際の経営改善では、数字だけでなく、サービス内容・価格・集客導線・スタッフ体制などを合わせて分析することが重要です。</p>
-      <button class="btn btn-accent btn-xl" type="button" id="contactBtn">詳しい経営診断について相談する</button>
+      <h2 class="cta-title">差が見えたら、あとは埋める順番を決めるだけです</h2>
+      <p class="cta-text">この診断は簡易版です。実際の経営改善では、数字の把握・集客導線・継続の仕組み・スタッフ体制を、どの順番で手をつけるかで結果が大きく変わります。いま出た差のどこから埋めるべきか、30分でご一緒に整理します。</p>
+      <button class="btn btn-accent btn-xl" type="button" id="contactBtn">無料相談（30分）に申し込む</button>
+      <p class="cta-note">※オンラインで実施します。売り込みはいたしません。</p>
     </div>
   </section>
 

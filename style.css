@@ -570,7 +570,7 @@ button { font-family: inherit; }
 }
 .qt-row {
   display: grid;
-  grid-template-columns: 76px 190px 190px 1fr;
+  grid-template-columns: 88px 186px 186px 1fr;
   gap: 12px;
   align-items: center;
   padding: 12px 16px;
@@ -692,6 +692,8 @@ button { font-family: inherit; }
 
 /* ---------- 8. レスポンシブ ---------- */
 @media screen and (max-width: 900px) {
+  .ready-inner { grid-template-columns: 1fr; }
+
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chart-grid { grid-template-columns: 1fr; }
@@ -708,6 +710,15 @@ button { font-family: inherit; }
 
 @media screen and (max-width: 600px) {
   .section { padding: 48px 0; }
+  .gap-hero { padding: 26px 18px; }
+  .gap-hero-value { font-size: 34px; }
+  .gap-compare { flex-direction: column; gap: 10px; }
+  .gap-compare-item { width: 100%; }
+  .gap-compare-arrow { transform: rotate(90deg); }
+  .detail-summary { padding: 16px; }
+  .detail-body { padding: 4px 16px 20px; }
+  .progress-bar { margin: 22px 0 16px; }
+
   .card { padding: 20px 16px; }
   .section-title { font-size: 21px; }
 
@@ -739,6 +750,250 @@ button { font-family: inherit; }
   * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
 }
 
+/* ---------- 8-2. 診断フロー（STEP表示・進捗・設問） ---------- */
+.section-alt { background: #eef2f7; }
+
+.step-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+
+/* 回答の進捗 */
+.progress-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  margin: 28px 0 20px;
+  padding-right: 92px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--blue-mid), var(--green));
+  transition: width .35s ease;
+}
+.progress-text {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* STEP1：規模の設問 */
+.scale-list { display: grid; gap: 20px; margin-top: 22px; }
+
+.scale-question {
+  padding: 18px 18px 16px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.scale-question-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+.scale-question-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.scale-question .choices { margin-top: 12px; }
+
+.choices-wide span { padding: 9px 16px; font-size: 13px; }
+
+/* STEP2：領域ごとの設問 */
+.question-group { margin-bottom: 24px; }
+.field-group-count {
+  margin-left: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--blue-light);
+  border-radius: 4px;
+  padding: 2px 8px;
+  vertical-align: 1px;
+}
+
+/* 未回答の設問を目立たせる */
+.question.is-unanswered,
+.scale-question.is-unanswered {
+  border-color: #f0c5c0;
+  background: var(--red-light);
+}
+
+/* STEP3：任意の詳細入力 */
+.detail-block {
+  margin-top: 26px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.detail-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+.detail-summary::-webkit-details-marker { display: none; }
+.detail-summary::before {
+  content: "＋";
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.detail-block[open] .detail-summary::before { content: "−"; }
+.detail-summary:hover { background: var(--blue-light); }
+.detail-summary-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+.detail-summary-note { font-size: 12px; color: var(--text-muted); }
+.detail-body { padding: 4px 24px 24px; border-top: 1px solid var(--line); }
+.detail-body .field-group:last-child { margin-bottom: 0; }
+
+/* ---------- 8-3. 結果：ギャップと準備度 ---------- */
+.gap-hero {
+  margin-top: 30px;
+  padding: 34px 28px;
+  text-align: center;
+  color: var(--white);
+  background:
+    radial-gradient(700px 260px at 82% -20%, rgba(74, 144, 226, .38), transparent 62%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.gap-hero-label { font-size: 13px; color: #b9cbe4; letter-spacing: .06em; }
+.gap-hero-value {
+  margin-top: 6px;
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.gap-hero.is-achieved .gap-hero-value { font-size: 32px; color: #7fe3b8; }
+.gap-hero-sub { margin-top: 6px; font-size: 15px; color: #dbe8f8; }
+
+.gap-compare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+}
+.gap-compare-item {
+  min-width: 180px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: var(--radius-sm);
+}
+.gap-compare-item.is-goal { background: rgba(23, 166, 115, .22); border-color: rgba(23, 166, 115, .55); }
+.gap-compare-label { display: block; font-size: 11px; color: #c8d8ec; }
+.gap-compare-value {
+  display: block;
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.gap-compare-arrow { font-size: 20px; color: #8fb4e0; }
+
+.gap-hero-note {
+  max-width: 640px;
+  margin: 22px auto 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #b9cbe4;
+  text-align: left;
+}
+
+/* 準備度 */
+.ready-card { margin-top: 24px; }
+.ready-inner {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 26px;
+  align-items: center;
+}
+.ready-score {
+  text-align: center;
+  background: var(--blue-light);
+  border: 1px solid #cfe0f7;
+  border-radius: var(--radius);
+  padding: 20px 14px;
+}
+.ready-score-label { display: block; font-size: 11px; color: var(--text-muted); }
+.ready-score-value {
+  font-size: 46px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.ready-score-unit { font-size: 16px; font-weight: 700; color: var(--navy); margin-left: 2px; }
+.ready-verdict { font-size: 19px; font-weight: 800; color: var(--navy); }
+.ready-text { margin-top: 12px; font-size: 13px; color: var(--text-muted); }
+
+/* 9つの数字の把握状況 */
+.number-grasp {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.grasp-lead { font-size: 14px; color: var(--text); }
+.grasp-lead strong { color: var(--navy); font-size: 17px; }
+.grasp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.grasp-chip {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #97a4b5;
+  background: var(--bg);
+  border: 1px dashed #ccd6e2;
+  border-radius: 999px;
+}
+.grasp-chip.is-grasped {
+  color: var(--green);
+  background: var(--green-light);
+  border-style: solid;
+  border-color: #b6e4d0;
+}
+
+/* 領域別テーブルの「必要な水準」バー */
+.qt-bar-required { color: var(--green); }
+
+/* 任意入力の結果 */
+.detail-result { margin-top: 24px; }
+.detail-result .kpi-grid { margin-top: 0; }
+.detail-result .chart-card {
+  box-shadow: none;
+  border-color: var(--line);
+}
+.card-subtitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.chart-grid-detail { margin-top: 20px; }
+
+.cta-note { margin-top: 14px; font-size: 12px; color: #a8bcd8; }
+
 /* ---------- 9. 印刷（PDF保存）用レイアウト ---------- */
 @media print {
   @page {
@@ -760,7 +1015,7 @@ button { font-family: inherit; }
   /* 診断結果以外は印刷しない */
   .site-header,
   .hero,
-  #form-section,
+  #diagnosisForm,
   .cta-section,
   .site-footer,
   .result-toolbar { display: none !important; }
@@ -807,7 +1062,7 @@ button { font-family: inherit; }
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .card { padding: 12px 14px; margin-top: 10px; }
+  .card { padding: 11px 14px; margin-top: 8px; }
   .card-title { padding-bottom: 8px; margin-bottom: 12px; font-size: 14px; }
 
   .kpi-grid {
@@ -833,8 +1088,8 @@ button { font-family: inherit; }
    * Chart.js の再描画が印刷レイアウトに間に合わなくても、
    * object-fit で描画済みの内容が枠からはみ出さないようにしている。
    */
-  .chart-box { height: 180px; }
-  .chart-box-radar { height: 240px; max-width: 360px; }
+  .chart-box { height: 165px; }
+  .chart-box-radar { height: 195px; max-width: 330px; }
   .chart-box canvas {
     width: 100% !important;
     height: 100% !important;
@@ -842,34 +1097,42 @@ button { font-family: inherit; }
     object-position: center;
   }
 
-  .total-inner { grid-template-columns: 140px 1fr; gap: 16px; }
-  .total-score { padding: 10px 8px; }
-  .total-score-value { font-size: 30px; }
-  .total-verdict-text { font-size: 15px; }
-  .score-bar { margin-top: 10px; }
-  .score-breakdown { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 10px; }
-  .score-breakdown li { padding: 6px 4px; }
+  /* ギャップサマリー */
+  .gap-hero { margin-top: 12px; padding: 14px 18px; box-shadow: none; }
+  .gap-hero-value { font-size: 30px; }
+  .gap-hero.is-achieved .gap-hero-value { font-size: 22px; }
+  .gap-hero-sub { font-size: 12px; }
+  .gap-compare { margin-top: 14px; gap: 12px; }
+  .gap-compare-item { min-width: 150px; padding: 10px 14px; }
+  .gap-compare-value { font-size: 17px; }
+  .gap-hero-note { margin-top: 14px; font-size: 11px; }
 
-  .quality-head { grid-template-columns: 130px 1fr; margin-bottom: 12px; }
-  .quality-score { padding: 10px 8px; }
-  .quality-score-value { font-size: 24px; }
+  /* 準備度 */
+  .ready-inner { grid-template-columns: 150px 1fr; gap: 16px; }
+  .ready-score { padding: 12px 10px; }
+  .ready-score-value { font-size: 32px; }
+  .ready-verdict { font-size: 15px; }
+  .score-bar { margin-top: 10px; }
+  .number-grasp { margin-top: 10px; padding-top: 10px; }
+  .grasp-chip { padding: 4px 10px; font-size: 10px; }
+
   .qt-row {
     display: grid;
-    grid-template-columns: 60px 155px 155px 1fr;
+    grid-template-columns: 76px 148px 148px 1fr;
     gap: 10px;
     padding: 6px 10px;
   }
   .qt-row.qt-head { display: grid; }
   .quality-note { margin-top: 10px; }
 
-  .advice-list { gap: 8px; }
-  .advice-item { padding: 10px 12px; gap: 10px; }
+  .advice-list { gap: 7px; }
+  .advice-item { padding: 8px 11px; gap: 10px; }
   .advice-no { width: 20px; height: 20px; font-size: 11px; margin-top: 1px; }
   .advice-body-title { font-size: 13px; }
   .advice-body-text { font-size: 11px; margin-top: 2px; }
 
-  /* 総合診断から下は改ページして2ページ目に送る */
-  .total-card { break-before: page; page-break-before: always; }
+  /* 任意入力のKPIは、区切りとして改ページする */
+  .detail-result { break-before: page; page-break-before: always; }
 
   a { text-decoration: none; color: inherit; }
 }
