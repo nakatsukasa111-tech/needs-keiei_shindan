@@ -1231,9 +1231,6 @@
     $('resetBtn').addEventListener('click', clearForm);
 
     $('pdfBtn').addEventListener('click', printResult);
-    $('contactBtn').addEventListener('click', function () {
-      window.alert('お問い合わせ導線をここに設置できます');
-    });
 
     window.addEventListener('beforeprint', resizeCharts);
     window.addEventListener('afterprint', resizeCharts);
