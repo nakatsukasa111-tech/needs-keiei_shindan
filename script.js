@@ -1070,6 +1070,37 @@
     }, 3000);
   }
 
+  /**
+   * 無料相談への導線を開く。
+   * 埋め込み表示（iframe）では target="_blank" がブロックされて無反応になるため、
+   * 新しいタブが開けなかった場合はこの画面自体を遷移させる。
+   */
+  function openContactLink(event) {
+    var link = $('contactBtn');
+    var url = link.href;
+
+    // 通常のページではブラウザの既定動作（新しいタブ）に任せる
+    if (!isFramed()) return;
+
+    event.preventDefault();
+
+    // noopener を指定すると戻り値が常に null になり、開けたか判定できない。
+    // 開いたあとに opener を切ることで、同じ安全性を保ちつつ成否を判定する。
+    var opened = null;
+    try {
+      opened = window.open(url, '_blank');
+    } catch (error) {
+      opened = null;
+    }
+    if (opened) {
+      try { opened.opener = null; } catch (error) { /* クロスオリジンでは触れないため無視 */ }
+      return;
+    }
+
+    // 新しいタブが開けなければ、この画面を申し込みページに切り替える
+    window.location.href = url;
+  }
+
   function resizeCharts() {
     Object.keys(charts).forEach(function (key) {
       if (charts[key]) charts[key].resize();
@@ -1231,6 +1262,7 @@
     $('resetBtn').addEventListener('click', clearForm);
 
     $('pdfBtn').addEventListener('click', printResult);
+    $('contactBtn').addEventListener('click', openContactLink);
 
     window.addEventListener('beforeprint', resizeCharts);
     window.addEventListener('afterprint', resizeCharts);
